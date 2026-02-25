@@ -7,7 +7,7 @@ let server:Server;
 const PORT = process.env.PORT || 5000;
 const Main =async()=>{
 try {
-    await mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.3t5vk.mongodb.net/aadyDB?retryWrites=true&w=majority&appName=Cluster0`)
+    await mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.3t5vk.mongodb.net/bongoDB?appName=Cluster0`)
     console.log('db connected')
 
    server = app.listen(PORT,()=>{console.log('server running on port 5000')})
