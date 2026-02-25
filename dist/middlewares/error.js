@@ -51,13 +51,7 @@ const sendErrorDev = (error, res) => {
 const sendErrorProd = (error, res) => {
     // Operational, trusted error
     if (isOperationalError(error)) {
-        res.status(error.statusCode).json({
-            success: false,
-            status: error.status,
-            message: error.message,
-            ...(error.details && { details: error.details }),
-            timestamp: new Date().toISOString(),
-        });
+        res.status(error.statusCode).json(Object.assign(Object.assign({ success: false, status: error.status, message: error.message }, (error.details && { details: error.details })), { timestamp: new Date().toISOString() }));
     }
     // Programming or unknown error
     else {

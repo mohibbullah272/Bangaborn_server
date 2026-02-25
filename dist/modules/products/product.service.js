@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -15,7 +24,8 @@ const generateSlug = (name) => name
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
 // CREATE - full business validation
-const createProduct = async (data) => {
+const createProduct = (data) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     // Business rules for clothing store
     if (data.price <= 0)
         throw new Error('Price must be greater than 0');
@@ -30,22 +40,13 @@ const createProduct = async (data) => {
         throw new Error('At least one color is required');
     if (data.images.length === 0)
         throw new Error('At least one image URL is required');
-    const productPayload = {
-        ...data,
-        slug: generateSlug(data.name),
-        sold: 0,
-        rating: 0,
-        numReviews: 0,
-        isActive: true,
-        isFeatured: data.isFeatured ?? false,
-        tags: data.tags ?? [],
-    };
+    const productPayload = Object.assign(Object.assign({}, data), { slug: generateSlug(data.name), sold: 0, rating: 0, numReviews: 0, isActive: true, isFeatured: (_a = data.isFeatured) !== null && _a !== void 0 ? _a : false, tags: (_b = data.tags) !== null && _b !== void 0 ? _b : [] });
     const product = new product_model_1.default(productPayload);
-    return await product.save();
-};
+    return yield product.save();
+});
 exports.createProduct = createProduct;
 // READ ALL - full filtering, pagination, sorting (A-Z business logic)
-const getAllProducts = async (query = {}) => {
+const getAllProducts = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (query = {}) {
     const { category, gender, minPrice, maxPrice, size, color, search, page = '1', limit = '12', sortBy = 'createdAt', sortOrder = 'desc', } = query;
     const pageNum = Math.max(1, Number(page));
     const limitNum = Math.max(1, Math.min(100, Number(limit))); // cap at 100
@@ -84,7 +85,7 @@ const getAllProducts = async (query = {}) => {
     else {
         sort = { [sortBy]: order };
     }
-    const [products, total] = await Promise.all([
+    const [products, total] = yield Promise.all([
         product_model_1.default.find(filter).sort(sort).skip(skip).limit(limitNum),
         product_model_1.default.countDocuments(filter),
     ]);
@@ -97,26 +98,26 @@ const getAllProducts = async (query = {}) => {
             totalPages: Math.ceil(total / limitNum),
         },
     };
-};
+});
 exports.getAllProducts = getAllProducts;
 // READ ONE - support both Mongo _id and slug (common UX)
-const getProductByIdentifier = async (identifier) => {
+const getProductByIdentifier = (identifier) => __awaiter(void 0, void 0, void 0, function* () {
     let product = null;
     // Try as ObjectId first
     if (mongoose_1.default.Types.ObjectId.isValid(identifier)) {
-        product = await product_model_1.default.findById(identifier);
+        product = yield product_model_1.default.findById(identifier);
     }
     // Fallback to slug
     if (!product) {
-        product = await product_model_1.default.findOne({ slug: identifier });
+        product = yield product_model_1.default.findOne({ slug: identifier });
     }
     if (product && !product.isActive)
         return null;
     return product;
-};
+});
 exports.getProductByIdentifier = getProductByIdentifier;
 // UPDATE - full business validation + slug regeneration
-const updateProduct = async (id, data) => {
+const updateProduct = (id, data) => __awaiter(void 0, void 0, void 0, function* () {
     if (data.price !== undefined && data.price <= 0)
         throw new Error('Price must be greater than 0');
     if (data.stock !== undefined && data.stock < 0)
@@ -130,31 +131,31 @@ const updateProduct = async (id, data) => {
         throw new Error('At least one color is required');
     if (data.images && data.images.length === 0)
         throw new Error('At least one image URL is required');
-    const updatePayload = { ...data };
+    const updatePayload = Object.assign({}, data);
     // Regenerate slug when name changes
     if (data.name) {
         updatePayload.slug = generateSlug(data.name);
     }
-    const updated = await product_model_1.default.findByIdAndUpdate(id, { $set: updatePayload }, { new: true, runValidators: true });
+    const updated = yield product_model_1.default.findByIdAndUpdate(id, { $set: updatePayload }, { new: true, runValidators: true });
     return updated;
-};
+});
 exports.updateProduct = updateProduct;
 // DELETE - SOFT DELETE (best practice for e-commerce)
-const softDeleteProduct = async (id) => {
-    const result = await product_model_1.default.findByIdAndUpdate(id, { isActive: false }, { new: true });
+const softDeleteProduct = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield product_model_1.default.findByIdAndUpdate(id, { isActive: false }, { new: true });
     return !!result;
-};
+});
 exports.softDeleteProduct = softDeleteProduct;
 // Extra business helpers (very useful for clothing store frontend)
-const getFeaturedProducts = async (limit = 8) => {
-    return await product_model_1.default.find({ isActive: true, isFeatured: true })
+const getFeaturedProducts = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (limit = 8) {
+    return yield product_model_1.default.find({ isActive: true, isFeatured: true })
         .sort({ createdAt: -1 })
         .limit(limit);
-};
+});
 exports.getFeaturedProducts = getFeaturedProducts;
-const getProductsByCategory = async (category, limit = 12) => {
-    return await product_model_1.default.find({ category, isActive: true })
+const getProductsByCategory = (category_1, ...args_1) => __awaiter(void 0, [category_1, ...args_1], void 0, function* (category, limit = 12) {
+    return yield product_model_1.default.find({ category, isActive: true })
         .sort({ createdAt: -1 })
         .limit(limit);
-};
+});
 exports.getProductsByCategory = getProductsByCategory;
